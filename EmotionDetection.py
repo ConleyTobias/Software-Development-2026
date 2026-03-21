@@ -5,7 +5,7 @@ This program uses a webcam to detect facial emotions
 using DeepFace
  
 DeepFace works by looking at a face and comparing it against patterns
-it learned from thousands of labelled photos of people expressing different
+it learned from thousands of labeled photos of people expressing different
 emotions. It then makes its best guess at what its feeling.
  
     DeepFace (GitHub):  https://github.com/serengil/deepface
@@ -16,8 +16,8 @@ Required packages:
  
 Press 'q' while the webcam window is open to quit.
 """
- 
-import cv2
+
+import cv2, pyttsx3
 from deepface import DeepFace
  
  
@@ -28,27 +28,27 @@ class EmotionDetector:
     Handles all the emotion detection logic.
  
     DeepFace can detect 7 emotions: angry, disgust, fear, happy, sad, surprise, neutral.
-    It analyses a frame from the webcam and tells us which one it thinks we're showing.
+    It analyzes a frame from the webcam and tells us which one it thinks we're showing.
  
     Since running DeepFace on every single frame would make the program really slow
     we only run it every Nth frame and reuse the last result in between.
     """
  
     def __init__(self):
-        self.analysis_interval = 10   # only analyse every Nth frame
+        self.analysis_interval = 10   # only analyze every Nth frame
         self.frame_count = 0          # we use this to know when we've hit the Nth frame
         self.last_emotion = "unknown" 
  
     def _select_best_face(self, results, frame_width, frame_height):
         """
-        DeepFace can detect multiple faces at once but we only want one emotion,
-        so wepick which face to focus on based on recent one.
+        DeepFace can detect multiple faces at once, but we only want one emotion,
+        so we pick which face to focus on based on recent one.
  
         Rather than just grabbing the first one in the list (which has no real
         order), we find whichever face is closest to the center of the screen.
         That way you just point it at the person's voice!
  
-        DeepFace tells us where each face is via a the region of the dictionary
+        DeepFace tells us where each face is via a region of the dictionary
             x, y    is the top-left corner of the face box
             w, h    is the width and height of the face box
         We use these to calculate the center of each face, then pick the one
@@ -77,7 +77,7 @@ class EmotionDetector:
  
         Parameters -
         frame: numpy.ndarray
-            A raw image from the webcam (in BGR colour format, which is how OpenCV works anyway).
+            A raw image from the webcam (in BGR color format, which is how OpenCV works anyway).
  
         Returns -
         str: something like 'happy' or 'neutral', or 'unknown' if we haven't figured anything out yet.
@@ -113,8 +113,21 @@ class EmotionDetector:
             print(f"[EmotionDetector] Warning: {error}")
  
         return self.last_emotion
- 
- 
+
+prev_emotion = ""
+
+def read_emotion(emotion):
+    """ This will read the text out loud """
+    global prev_emotion
+    engine = pyttsx3.init()
+
+    if prev_emotion != emotion:
+        engine.say(f"Emotion: {emotion}")
+        engine.runAndWait()
+
+    prev_emotion = emotion
+
+
 #  Webcam Loop
  
 def run_detector():
@@ -130,8 +143,8 @@ def run_detector():
         return
  
     emotion_detector = EmotionDetector()
-    
-    # ======= creates a cool effect seperating the user instructions from the rest of the console output 
+
+    # ======= creates a cool effect separating the user instructions from the rest of the console output
     print("=" * 50)
     print("  Real Time Emotion Detector")
     print("  Press 'q' in the video window to quit.")
@@ -149,7 +162,8 @@ def run_detector():
         # only print when we actually have a real result
         if detected_emotion != "unknown":
             print(f"Emotion: {detected_emotion}")
- 
+            read_emotion(detected_emotion)
+
         cv2.imshow("Emotion Detector  (press q to quit)", frame)
  
         # waitKey(1) waits 1ms for a keypress. CV2 needs this otherwise it freezes
