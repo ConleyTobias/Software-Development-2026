@@ -1,1 +1,4 @@
+deepface
+opencv-python
+pyttsx3
 pyinstaller
