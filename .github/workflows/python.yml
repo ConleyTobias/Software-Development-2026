@@ -34,9 +34,13 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onefile your_script.py
+          pyinstaller EmotionDetection.spec
 
-      - name: Upload build artifact
+      - name: Download VC++ Redistributable (Backup)
+        run: |
+          curl -L "https://aka.ms/vs/17/release/vc_redist.x64.exe" -o dist/vc_redist.x64.exe
+
+      - name: Upload build artifact (exe)
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
